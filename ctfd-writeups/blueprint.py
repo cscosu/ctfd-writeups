@@ -92,11 +92,21 @@ def load_bp(admin_route, base_route, plugin_dir='.'):
                                         ~WriteUpChallenges.solve_req |
                                         (Submissions.user_id == user.id)))
 
+        challenge_name = "Challenges You've Solved"
         if 'challenge' in request.args:
-            visible_writeups = visible_writeups.filter(WriteUpChallenges.for_id == request.args['challenge'])
+            visible_writeups = visible_writeups.filter(WriteUpChallenges.for_id == request.args['challenge']) 
+            solves = [s.challenge_id for s in user.team.solves] if user.team else [s.challenge_id for s in user.solves]
+            challenge = db.session.query(Challenges).filter(Challenges.id == request.args['challenge']).one_or_none()
+            if (not challenge or (challenge.id not in solves)) and (user.type != 'admin'):
+                return render_template("writeups.html", writeups=[], page_content='', error={
+                    'heading': '403',
+                    'msg': 'Sorry, you must solve this challenge before you can view write-ups for it ;)'
+                })
+            challenge_name = challenge.name
+                
 
         visible_writeups = visible_writeups.all()
-        return render_template("writeups.html", writeups=visible_writeups, page_content=page.content if page else '')
+        return render_template("writeups.html", challenge_name=challenge_name, writeups=visible_writeups, page_content=page.content if page else '')
 
     @writeups_bp.route(f"{base_route}/<int:writeup_id>", methods=["GET"])
     @during_ctf_time_only
@@ -211,4 +221,3 @@ def load_bp(admin_route, base_route, plugin_dir='.'):
             db.session.commit()
 
     return writeups_bp
-    
