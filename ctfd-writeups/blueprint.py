@@ -122,7 +122,7 @@ def load_bp(admin_route, base_route, plugin_dir='.'):
         if (user.type == 'admin' or
                 not challenge.writeup_challenge.solve_req or
                 ( user.team and (challenge.id in (s.challenge_id for s in user.team.solves))) or
-                ( challenge.id in (s.challenge_id for x in user.solves)) or
+                ( challenge.id in (s.challenge_id for s in user.solves)) or
                 writeup.user.id == user.id):
             content = cmarkgfm.github_flavored_markdown_to_html(writeup.provided, options=cmarkgfmOptions.CMARK_OPT_SAFE)
             if writeup.user.id == user.id or user.type == 'admin':
@@ -152,7 +152,7 @@ def load_bp(admin_route, base_route, plugin_dir='.'):
         if not challenge or not challenge.writeup_challenge:
             return redirect(url_for('writeups.writeups'))
 
-	solves = [s.challenge_id for s in user.team.solves] if user.team else [s.challenge_id for s in user.solves]
+        solves = [s.challenge_id for s in user.team.solves] if user.team else [s.challenge_id for s in user.solves]
 
         if challenge.id not in solves: 
             return render_template("edit_writeup.html", challenge=challenge, error={
@@ -168,7 +168,7 @@ def load_bp(admin_route, base_route, plugin_dir='.'):
         if not writeup:
             team_wu_solve = (db.session.query(Solves)
                                .filter(Solves.challenge_id == challenge.writeup_challenge.id)
-                               .filter(Solves.team_id == user.team.id or Solves.user_id == user.id)
+                               .filter((Solves.team_id == user.team.id) if user.team else (Solves.user_id == user.id))
                                .one_or_none())
             if team_wu_solve:
                 writeup = Duplicate(
