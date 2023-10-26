@@ -102,7 +102,7 @@ def load_bp(admin_route, base_route, plugin_dir='.'):
                     'heading': '403',
                     'msg': 'Sorry, you must solve this challenge before you can view write-ups for it ;)'
                 })
-            challenge_name = f"{challenge.name}"
+            challenge_name = challenge.name
         
         if 'author_name' in request.args:
             user = db.session.query(Users).filter(Users.name == request.args['author_name']).one_or_none()
