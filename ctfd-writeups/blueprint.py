@@ -4,7 +4,7 @@ from CTFd.utils.decorators import admins_only, during_ctf_time_only, require_ver
 from CTFd.utils.user import authed, get_current_user
 from CTFd.utils import markdown
 from flask import request, render_template, Blueprint, abort, redirect, url_for, send_from_directory
-from CTFd.models import db, Challenges, Submissions, Solves, Pages
+from CTFd.models import db, Challenges, Submissions, Solves, Pages, Users
 from .models import WriteUpChallenges, Duplicate
 import cmarkgfm
 from cmarkgfm.cmark import Options as cmarkgfmOptions
@@ -103,6 +103,16 @@ def load_bp(admin_route, base_route, plugin_dir='.'):
                     'msg': 'Sorry, you must solve this challenge before you can view write-ups for it ;)'
                 })
             challenge_name = challenge.name
+        
+        if 'author_name' in request.args:
+            user = db.session.query(Users).filter(Users.name == request.args['author_name']).one_or_none()
+            if not user:
+                return render_template("writeups.html", writeups=[], page_content='', error={
+                    'heading': '403',
+                    'msg': 'Sorry, we couldn\'t find that user ><'
+                })
+            visible_writeups = visible_writeups.filter(Submissions.user_id == user.id)
+            challenge_name = f"Challenges You've Solved by {user.name}"
                 
 
         visible_writeups = visible_writeups.all()
