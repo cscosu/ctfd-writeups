@@ -94,7 +94,7 @@ def load_bp(admin_route, base_route, plugin_dir='.'):
 
         challenge_name = "Challenges You've Solved"
         if 'challenge' in request.args:
-            visible_writeups = visible_writeups.filter(WriteUpChallenges.for_id == request.args['challenge']) 
+            visible_writeups = visible_writeups.filter(WriteUpChallenges.for_id == request.args['challenge'])
             solves = [s.challenge_id for s in user.team.solves] if user.team else [s.challenge_id for s in user.solves]
             challenge = db.session.query(Challenges).filter(Challenges.id == request.args['challenge']).one_or_none()
             if (not challenge or (challenge.id not in solves)) and (user.type != 'admin'):
@@ -103,7 +103,7 @@ def load_bp(admin_route, base_route, plugin_dir='.'):
                     'msg': 'Sorry, you must solve this challenge before you can view write-ups for it ;)'
                 })
             challenge_name = challenge.name
-        
+
         if 'author_name' in request.args:
             user = db.session.query(Users).filter(Users.name == request.args['author_name']).one_or_none()
             if not user:
@@ -113,7 +113,7 @@ def load_bp(admin_route, base_route, plugin_dir='.'):
                 })
             visible_writeups = visible_writeups.filter(Submissions.user_id == user.id)
             challenge_name = f"Challenges You've Solved by {user.name}"
-                
+
 
         visible_writeups = visible_writeups.all()
         return render_template("writeups.html", challenge_name=challenge_name, writeups=visible_writeups, page_content=page.content if page else '')
@@ -144,7 +144,7 @@ def load_bp(admin_route, base_route, plugin_dir='.'):
                 ( user.team and (challenge.id in (s.challenge_id for s in user.team.solves))) or
                 ( challenge.id in (s.challenge_id for s in user.solves)) or
                 writeup.user.id == user.id):
-            content = cmarkgfm.github_flavored_markdown_to_html(writeup.provided, options=cmarkgfmOptions.CMARK_OPT_SAFE)
+            content = cmarkgfm.github_flavored_markdown_to_html(writeup.provided)
             if writeup.user.id == user.id or user.type == 'admin':
                 editable = True
         else:
@@ -174,7 +174,7 @@ def load_bp(admin_route, base_route, plugin_dir='.'):
 
         solves = [s.challenge_id for s in user.team.solves] if user.team else [s.challenge_id for s in user.solves]
 
-        if challenge.id not in solves: 
+        if challenge.id not in solves:
             return render_template("edit_writeup.html", challenge=challenge, error={
                 'heading': '403',
                 'msg': 'Sorry, you must solve the challenge before submitting a write-up'
